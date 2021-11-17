@@ -1,0 +1,24 @@
+{
+	"recommendations": [
+		"bierner.emojisense",
+		"sergelamikhov.aligntokens",
+		"formulahendry.auto-close-tag",
+		"formulahendry.auto-rename-tag",
+		"axetroy.vscode-auto-schema",
+		"aaron-bond.better-comments",
+		"streetsidesoftware.code-spell-checker",
+		"mikestead.dotenv",
+		"editorconfig.editorconfig",
+		"usernamehw.errorlens",
+		"henry-li.vscode-import-formatter",
+		"bierner.markdown-checkbox",
+		"bierner.markdown-emoji",
+		"davidanson.vscode-markdownlint",
+		"csstools.postcss",
+		"esbenp.prettier-vscode",
+		"mrmlnc.vscode-attrs-sorter",
+		"wayou.vscode-todo-highlight",
+		"gruntfuggly.todo-tree",
+		"shardulm94.trailing-spaces"
+	]
+}

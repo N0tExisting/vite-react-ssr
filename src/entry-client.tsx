@@ -1,10 +1,13 @@
-import ReactDOM from 'react-dom'
-import { BrowserRouter } from 'react-router-dom'
-import { App } from './App'
+import { hydrate } from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { App } from './App';
 
-ReactDOM.hydrate(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
-  document.getElementById('app')
-)
+hydrate(
+	<HelmetProvider>
+		<BrowserRouter>
+			<App />
+		</BrowserRouter>
+	</HelmetProvider>,
+	document.getElementById('root'),
+);

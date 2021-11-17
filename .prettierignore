@@ -1,0 +1,4 @@
+node_modules/
+/dist/
+# Prettier Fucks up the comments
+/tsconfig.json

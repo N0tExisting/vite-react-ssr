@@ -1,2 +1,3 @@
-# vite-react-ssr
-Created with CodeSandbox
+# Vite & React SSR
+
+**React SSR using Vite.**

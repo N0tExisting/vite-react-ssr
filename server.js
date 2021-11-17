@@ -1,96 +1,112 @@
 // @ts-check
-const fs = require('fs')
-const path = require('path')
-const express = require('express')
+// file deepcode ignore Utf8Literal: The web uses utf-8
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
 
-const isTest = process.env.NODE_ENV === 'test' || !!process.env.VITE_TEST_BUILD
+const IS_TEST =
+	process.env.NODE_ENV === 'test' || !!process.env.VITE_TEST_BUILD;
+const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
-process.env.MY_CUSTOM_SECRET = 'API_KEY_qwertyuiop'
+process.env.MY_CUSTOM_SECRET = 'API_KEY_qwertyuiop';
 
-async function createServer(
-  root = process.cwd(),
-  isProd = process.env.NODE_ENV === 'production'
-) {
-  const resolve = (p) => path.resolve(__dirname, p)
+async function createServer(root = process.cwd(), isProd = IS_PROD) {
+	const resolve = (/** @type {string} */ p) => path.resolve(__dirname, p);
 
-  const indexProd = isProd
-    ? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
-    : ''
+	const indexProd = isProd
+		? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
+		: '';
 
-  const app = express()
+	/** @type {import('./src/entry-server')} */
+	const entryProd = isProd ? require('./dist/server/entry-server.js') : null;
 
-  /**
-   * @type {import('vite').ViteDevServer}
-   */
-  let vite
-  if (!isProd) {
-    vite = await require('vite').createServer({
-      root,
-      logLevel: isTest ? 'error' : 'info',
-      server: {
-        middlewareMode: 'ssr',
-        watch: {
-          // During tests we edit the files too fast and sometimes chokidar
-          // misses change events, so enforce polling for consistency
-          usePolling: true,
-          interval: 100
-        }
-      }
-    })
-    // use vite's connect instance as middleware
-    app.use(vite.middlewares)
-  } else {
-    app.use(require('compression')())
-    app.use(
-      require('serve-static')(resolve('dist/client'), {
-        index: false
-      })
-    )
-  }
+	const app = express().disable('x-powered-by');
 
-  app.use('*', async (req, res) => {
-    try {
-      const url = req.originalUrl
+	const vite = isProd
+		? null
+		: await require('vite').createServer({
+				root,
+				logLevel: IS_TEST ? 'error' : 'info',
+				server: {
+					middlewareMode: 'ssr',
+				},
+		  });
+	if (!isProd) {
+		// use vite's connect instance as middleware
+		app.use(vite.middlewares);
+	} else {
+		app.use(require('compression')());
+		app.use(
+			require('serve-static')(resolve('dist/client'), {
+				index: false,
+			}),
+		);
+	}
 
-      let template, render
-      if (!isProd) {
-        // always read fresh template in dev
-        template = fs.readFileSync(resolve('index.html'), 'utf-8')
-        template = await vite.transformIndexHtml(url, template)
-        render = (await vite.ssrLoadModule('/src/entry-server.jsx')).render
-      } else {
-        template = indexProd
-        render = require('./dist/server/entry-server.js').render
-      }
+	// deepcode ignore NoRateLimitingForExpensiveWebOperation: Only Reading in dev anyway
+	app.use('*', async (req, res) => {
+		try {
+			const url = req.originalUrl;
 
-      const context = {}
-      const appHtml = render(url, context)
+			const template = isProd
+				? indexProd
+				: await vite.transformIndexHtml(
+						fs.readFileSync(resolve('index.html'), 'utf-8'),
+						url,
+				  );
 
-      if (context.url) {
-        // Somewhere a `<Redirect>` was rendered
-        return res.redirect(301, context.url)
-      }
+			/** @type {typeof entryProd.render} */
+			const render = isProd
+				? entryProd.render
+				: (await vite.ssrLoadModule('/src/entry-server.tsx')).render;
 
-      const html = template.replace(`<!--app-html-->`, appHtml)
+			const result = render(url);
 
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-    } catch (e) {
-      !isProd && vite.ssrFixStacktrace(e)
-      console.log(e.stack)
-      res.status(500).end(e.stack)
-    }
-  })
+			if (result.ctx.url) {
+				// Somewhere a `<Redirect>` was rendered
+				return res.redirect(301, result.ctx.url);
+			}
 
-  return { app, vite }
+			const html = template
+				.replace(`<!--%app.body%-->`, result.body)
+				.replace(`<!--%app.head%-->`, result.head);
+
+			// deepcode ignore XSS: Needed to render page, user needs to take care of XSS, deepcode ignore ServerLeak: Doesn't happen here
+			res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+		} catch (e) {
+			res.status(500);
+			vite && vite.ssrFixStacktrace(e);
+			console.error('Error Handling request:', {
+				request: req,
+				response: res,
+				error: e,
+			});
+			if (!isProd)
+				// deepcode ignore ServerLeak: Only Happens in Dev, deepcode ignore XSS: Only used in dev
+				res.end(JSON.stringify(e));
+			else {
+				// TODO: Add 5xx error page
+				res.end('Internal Server Error');
+			}
+		}
+	});
+
+	return { app, vite };
 }
 
-if (!isTest) {
-  createServer().then(({ app }) =>
-    app.listen(3000, () => {
-      console.log('http://localhost:3000')
-    })
-  )
+if (!IS_TEST) {
+	createServer()
+		.then(({ app }) =>
+			app.listen(PORT, () => {
+				console.log(`App listening on 'http://localhost:${PORT}'`);
+			}),
+		)
+		.catch((e) => {
+			console.error('Error Starting Server:', e);
+			throw e;
+		});
 }
 
 // for test use
-exports.createServer = createServer
+exports.createServer = createServer;
