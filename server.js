@@ -1,5 +1,6 @@
 // @ts-check
 // file deepcode ignore Utf8Literal: The web uses utf-8
+const _DotEnvResult = require('dotenv-flow').config();
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -9,11 +10,9 @@ const IS_TEST =
 const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
-process.env.MY_CUSTOM_SECRET = 'API_KEY_qwertyuiop';
+const resolve = (/** @type {string} */ p) => path.resolve(__dirname, p);
 
 async function createServer(root = process.cwd(), isProd = IS_PROD) {
-	const resolve = (/** @type {string} */ p) => path.resolve(__dirname, p);
-
 	const indexProd = isProd
 		? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
 		: '';
@@ -22,6 +21,8 @@ async function createServer(root = process.cwd(), isProd = IS_PROD) {
 	const entryProd = isProd ? require('./dist/server/entry-server.js') : null;
 
 	const app = express().disable('x-powered-by');
+
+	app.get('/index.html', (_, r) => r.redirect('/', 302));
 
 	const vite = isProd
 		? null
@@ -32,6 +33,8 @@ async function createServer(root = process.cwd(), isProd = IS_PROD) {
 					middlewareMode: 'ssr',
 				},
 		  });
+
+	// TODO: Add an API handler.
 	if (!isProd) {
 		// use vite's connect instance as middleware
 		app.use(vite.middlewares);
@@ -52,9 +55,10 @@ async function createServer(root = process.cwd(), isProd = IS_PROD) {
 			const template = isProd
 				? indexProd
 				: await vite.transformIndexHtml(
-						fs.readFileSync(resolve('index.html'), 'utf-8'),
 						url,
+						fs.readFileSync(resolve('index.html'), 'utf-8'),
 				  );
+			//console.log('Html Template:\n', template);
 
 			/** @type {typeof entryProd.render} */
 			const render = isProd
@@ -65,15 +69,19 @@ async function createServer(root = process.cwd(), isProd = IS_PROD) {
 
 			if (result.ctx.url) {
 				// Somewhere a `<Redirect>` was rendered
-				return res.redirect(301, result.ctx.url);
+				console.log(`Redirecting to ${result.ctx.url}`);
+				// deepcode ignore OR: The consumer needs to ensure no Open Redirects can happen.
+				return res.redirect(result.ctx.url, 301);
 			}
 
 			const html = template
 				.replace(`<!--%app.body%-->`, result.body)
 				.replace(`<!--%app.head%-->`, result.head);
 
+			//console.log('Html Response:\n', html);
+
 			// deepcode ignore XSS: Needed to render page, user needs to take care of XSS, deepcode ignore ServerLeak: Doesn't happen here
-			res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+			res.status(200).contentType('text/html').end(html);
 		} catch (e) {
 			res.status(500);
 			vite && vite.ssrFixStacktrace(e);
@@ -108,5 +116,5 @@ if (!IS_TEST) {
 		});
 }
 
-// for test use
 exports.createServer = createServer;
+exports.resolve = resolve;

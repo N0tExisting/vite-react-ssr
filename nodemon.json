@@ -1,0 +1,9 @@
+{
+	"delay": 0.25,
+	"watch": [
+		"./server.js",
+		"./yarn.lock",
+		"./vite.config.*"
+	],
+	"verbose": true
+}

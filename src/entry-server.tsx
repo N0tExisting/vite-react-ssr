@@ -19,16 +19,20 @@ export function render(url: string) {
 		body,
 		ctx: context as StaticRouterContext,
 		head: [
-			helmet.title.toString(),
-			helmet.base.toString(),
-			helmet.meta.toString(),
-			helmet.style.toString(),
-			helmet.link.toString(),
-			helmet.script.toString(),
-			helmet.noscript.toString(),
+			helmet.title?.toString(),
+			helmet.base?.toString(),
+			helmet.meta?.toString(),
+			helmet.style?.toString(),
+			helmet.link?.toString(),
+			helmet.script?.toString(),
+			helmet.noscript?.toString(),
 		].join(''),
-		titleAttr: helmet.titleAttributes.toString(),
-		bodyAttr: helmet.bodyAttributes.toString(),
-		htmlAttr: helmet.htmlAttributes.toString(),
+		titleAttr: helmet.titleAttributes?.toString(),
+		bodyAttr: helmet.bodyAttributes?.toString(),
+		htmlAttr: helmet.htmlAttributes?.toString(),
 	};
 }
+
+export { default as routes } from 'virtual:generated-pages-react';
+export const handlers = import.meta.globEager('./routes/**/*.ts');
+export const pages = import.meta.globEager('./routes/**/*.tsx');

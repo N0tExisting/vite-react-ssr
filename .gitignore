@@ -1,5 +1,14 @@
+# Deps & Build output
 node_modules/
 /dist/
+
+# Env
+.env.local
+.env.*.local
+.env.local.*
+.env.*.local.*
+!.env.example.local
+!.env.example.local.*
 
 # Misc
 .DS_Store
