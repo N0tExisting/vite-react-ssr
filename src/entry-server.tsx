@@ -1,13 +1,14 @@
-import * as ReactDOMServer from 'react-dom/server';
+import { renderToString } from 'react-dom/server';
 import type { StaticRouterContext } from 'react-router';
 import { StaticRouter } from 'react-router-dom';
-import { HelmetProvider, FilledContext } from 'react-helmet-async';
+import { HelmetProvider, type FilledContext } from 'react-helmet-async';
 import { App } from './App';
 
 export function render(url: string) {
 	const context = {};
 	const helmetContext = {} as unknown as FilledContext;
-	const body = ReactDOMServer.renderToString(
+	// TODO: Figure out link tags to send as headers!
+	const body = renderToString(
 		<HelmetProvider context={helmetContext}>
 			<StaticRouter location={url} context={context}>
 				<App />
@@ -27,9 +28,7 @@ export function render(url: string) {
 			helmet.script?.toString(),
 			helmet.noscript?.toString(),
 		].join(''),
-		titleAttr: helmet.titleAttributes?.toString(),
-		bodyAttr: helmet.bodyAttributes?.toString(),
-		htmlAttr: helmet.htmlAttributes?.toString(),
+		helmet,
 	};
 }
 
