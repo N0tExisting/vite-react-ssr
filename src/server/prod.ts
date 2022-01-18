@@ -1,8 +1,7 @@
 import '$util/env';
 import createServer from '.';
 
-const PORT =
-	process.env.PORT || (import.meta.env.PORT as number | string) || 3000;
+const PORT = process.env.PORT || (import.meta.env.PORT as string) || 3000;
 
 createServer()
 	.then((server) => {
@@ -12,7 +11,7 @@ createServer()
 				process.exit(1);
 				return;
 			} else {
-				console.log(`Server listening on ${addr}`);
+				console.log(`Server listening on '${addr}'`);
 			}
 		});
 	})
@@ -20,3 +19,9 @@ createServer()
 		console.error(err);
 		process.exit(1);
 	});
+
+export * from '.';
+export { render } from '$server/renderer';
+export { default as routes } from 'virtual:generated-pages-react';
+export const handlers = import.meta.globEager('../routes/**/*.ts');
+export const pages = import.meta.globEager('../routes/**/*.tsx');
