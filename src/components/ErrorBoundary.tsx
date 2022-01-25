@@ -45,24 +45,30 @@ export const DefaultFallback: VFC<DefaultFallbackProps> = (props) => {
 	);
 };
 
-export type ErrorBoundaryProps =
-	| {
-			onError: onErrorHandler;
-			fallback?: ReactNode;
-	  }
-	| {
-			fallback?: onErrorFallback;
-	  };
+// prettier-ignore
+export type ErrorBoundaryProps = (
+	{
+		onError: onErrorHandler;
+		fallback?: ReactNode;
+	}
+	|
+	{
+		fallback?: onErrorFallback;
+	}
+);
 
-type ErrorBoundaryState =
-	| {
-			hasError: true;
-			errorInfo?: unknown;
-			error: unknown;
-	  }
-	| {
-			hasError: false;
-	  };
+// prettier-ignore
+type ErrorBoundaryState = (
+	{
+		hasError: true;
+		errorInfo?: unknown;
+		error: unknown;
+	}
+	|
+	{
+		hasError: false;
+	}
+);
 
 export default class ErrorBoundary extends Component<
 	ErrorBoundaryProps,
