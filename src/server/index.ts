@@ -77,3 +77,7 @@ const createServer = async () => {
 };
 
 export default createServer;
+
+/*if (import.meta.hot) {
+	import.meta.hot.decline();
+}*/

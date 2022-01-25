@@ -3,8 +3,9 @@
 	"description": "React SSR powered by Vite & fastify",
 	"version": "0.0.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"dev": "node vitify/bin.mjs",
 		"build": "concurrently -n w: yarn:build:*",
 		"build:client": "vite build --outDir dist/client",
 		"build:server": "cross-env BUILD_ENV=SSR vite build --ssr src/server/prod.ts --outDir dist/server",
@@ -46,6 +47,7 @@
 		"cross-env": "^7.0.3",
 		"typescript": "^4.5.5",
 		"vite": "^2.7.13",
+		"vite-node": "^0.2.3",
 		"vite-plugin-node": "^0.0.15",
 		"vite-plugin-pages": "~0.18.2",
 		"vite-tsconfig-paths": "^3.3.17"

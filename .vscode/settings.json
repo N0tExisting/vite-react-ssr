@@ -6,7 +6,8 @@
 		"middie",
 		"middlewares",
 		"Vite",
-		"vitejs"
+		"vitejs",
+		"vitify"
 	],
 	"typescript.tsdk": "node_modules\\typescript\\lib"
 }

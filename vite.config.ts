@@ -1,19 +1,19 @@
 /// <reference path="./vite-config.d.ts" />
-import type { FastifyInstance } from 'fastify';
+//import type { FastifyInstance } from 'fastify';
 import {
 	defineConfig,
-	type SSROptions,
-	type ViteDevServer,
-	createServer,
+	//type ViteDevServer,
+	//createServer,
 } from 'vite';
 import react from '@vitejs/plugin-react';
 import pages from 'vite-plugin-pages';
-import { VitePluginNode, type RequestAdapter } from 'vite-plugin-node';
+//import { VitePluginNode, type RequestAdapter } from 'vite-plugin-node';
+import viteVitify from './vitify/plugin.mjs';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 const isSSR = process.env['BUILD_ENV'] === 'SSR';
 
-let vite: ViteDevServer;
+/*let vite: ViteDevServer;
 const ServerHandler: RequestAdapter<FastifyInstance> = async (
 	app,
 	req,
@@ -35,7 +35,7 @@ const ServerHandler: RequestAdapter<FastifyInstance> = async (
 	await app.ready();
 	app.log.trace('App Ready');
 	app.routing(req, res);
-};
+};*/
 
 export default defineConfig({
 	cacheDir: 'node_modules/.cache/vite',
@@ -62,7 +62,8 @@ export default defineConfig({
 			},
 			syncIndex: false,
 		}),
-		...VitePluginNode({
+		viteVitify(),
+		/*...VitePluginNode({
 			// Nodejs native Request adapter
 			// currently this plugin support 'express', 'nest', 'koa' and 'fastify' out of box,
 			// you can also pass a function if you are using other frameworks, see Custom Adapter section
@@ -82,9 +83,9 @@ export default defineConfig({
 			 * 'swc' compiler is supported to use as well for frameworks
 			 * like Nest.js (esbuild doesn't support `emitDecoratorMetadata` yet)
 			 * @default 'esbuild'
-			 */
+			 * /
 			//tsCompiler: 'esbuild',
-		}),
+		}),*/
 	],
 	esbuild: {
 		//jsxInject: "import { createElement as $$H, Fragment as $$F } from 'react';",
@@ -105,5 +106,6 @@ export default defineConfig({
 	},
 	ssr: {
 		target: 'node',
+		external: ['#vitify/vite'],
 	},
 });
