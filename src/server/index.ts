@@ -11,15 +11,13 @@ import indexHtml from '$/index.html?raw';
 
 export const app = Fastify();
 
-app.register(middie);
-app.register(cookie);
 app.register(fastifyFetch);
 
 export const fetch = app.fetch;
 
-//* https://react-query.tanstack.com/guides/ssr#using-other-frameworks-or-custom-ssr-frameworks
-
 const createServer = async () => {
+	app.register(middie);
+	app.register(cookie);
 	if (import.meta.env.PROD) {
 		app.register(compression);
 		app.register(fastifyStatic, {
@@ -35,10 +33,12 @@ const createServer = async () => {
 	app.get('*', async (req, rep) => {
 		req.log.trace(`Handling request for '${req.url}'`);
 
-		// TODO: Error Handling
 		const template =
 			app.vite != undefined
-				? await app.vite.transformIndexHtml(req.url, indexHtml)
+				? await app.vite.transformIndexHtml(req.url, indexHtml).catch((err) => {
+						req.log.error('Error transforming index.html', err);
+						return indexHtml;
+				  })
 				: indexHtml;
 
 		req.log.trace('Transformed index.html', template);
@@ -47,6 +47,7 @@ const createServer = async () => {
 
 		req.log.trace('Rendered App', res);
 
+		// TODO: Parse the document instead of just blindly replacing it
 		const html = template
 			.replace('<!--%app.head%-->', res.head)
 			.replace('<!--%app.body%-->', res.body);
@@ -68,10 +69,11 @@ const createServer = async () => {
 				req.log.trace(`Redirecting to '${res.ctx.url}'`);
 			}
 		}
-		rep.send(html);
+
+		return html;
 	});
 
-	return { app };
+	return { app, fetch: app.fetch };
 };
 
 export default createServer;

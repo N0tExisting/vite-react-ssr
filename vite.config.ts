@@ -1,31 +1,41 @@
-/// <reference path="./src/server/plugin.d.ts" />
-/// <reference types="middie" />
-import { resolve } from 'path';
+/// <reference path="./vite-config.d.ts" />
 import type { FastifyInstance } from 'fastify';
-import { type SSROptions, type UserConfig, defineConfig } from 'vite';
+import {
+	defineConfig,
+	type SSROptions,
+	type ViteDevServer,
+	createServer,
+} from 'vite';
 import react from '@vitejs/plugin-react';
 import pages from 'vite-plugin-pages';
 import { VitePluginNode, type RequestAdapter } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-declare module 'vite' {
-	interface UserConfig {
-		ssr?: SSROptions;
-	}
-}
-
 const isSSR = process.env['BUILD_ENV'] === 'SSR';
 
-const ServerHandler: RequestAdapter<FastifyInstance> = async (app, req, res, /* vite */) => {
-	// HACK: Wait for https://github.com/axe-me/vite-plugin-node/pull/26 to be merged
-	/*if (!app.vite) {
-		app.use(vite.middlewares)
+let vite: ViteDevServer;
+const ServerHandler: RequestAdapter<FastifyInstance> = async (
+	app,
+	req,
+	res,
+) => {
+	app.log.trace('Handling Request', { app, req, res });
+	if (!app.vite) {
+		app.log.trace('Starting Vite Instance');
+		vite = await createServer({
+			server: {
+				middlewareMode: 'ssr',
+			},
+		});
+		app.use(vite.middlewares);
 		app.decorate('vite', vite);
-	}*/
+		app.log.trace('Added Vite Server');
+	}
 
 	await app.ready();
+	app.log.trace('App Ready');
 	app.routing(req, res);
-}
+};
 
 export default defineConfig({
 	cacheDir: 'node_modules/.cache/vite',

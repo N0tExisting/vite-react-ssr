@@ -5,6 +5,7 @@ import { StaticRouter } from 'react-router-dom';
 import { HelmetProvider, type FilledContext } from 'react-helmet-async';
 import { App } from '$src/App';
 
+//* https://react-query.tanstack.com/guides/ssr#using-other-frameworks-or-custom-ssr-frameworks
 export async function render(url: string) {
 	const context = {} as unknown as StaticRouterContext;
 	const helmetContext = {} as unknown as FilledContext;
